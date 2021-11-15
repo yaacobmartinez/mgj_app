@@ -1,17 +1,18 @@
-import { Add, AddShoppingCart, ChevronLeft, Close, CloudDownload, Delete, Remove,} from '@mui/icons-material'
-import {  Avatar, Button, ButtonGroup, Divider, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, TextField, Toolbar, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Add, AddShoppingCart, ChevronLeft, Close, CloudDownload, Delete, Receipt, Refresh, Remove,} from '@mui/icons-material'
+import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, Toolbar, Typography } from '@mui/material'
+import React, { useCallback, useEffect, useState } from 'react'
 import {AccountBalanceWallet} from '@mui/icons-material'
-import { fetchFromStorage, saveToStorage } from '../../utils/storage'
+import { fetchFromStorage, saveToStorage, clearStorage } from '../../utils/storage'
 import QrReader from 'react-qr-reader'
 import axiosInstance from '../../utils/axios'
+import { totalReducer } from '../../utils'
+import QRCode from 'qrcode.react'
 
 function ScannerApp() {
     const cart = fetchFromStorage('cart')
     const [items, setItems] = useState( cart || [])
     const [openScan, setOpenScan] = useState(false)
-    
+    const [openPayment, setOpenPayment] = useState(false)
     const handleCartChange = (cart) => {
         setItems(cart)
     }
@@ -21,6 +22,11 @@ function ScannerApp() {
         setItems(filtered_cart)
         saveToStorage('cart', filtered_cart)
     }
+
+    useEffect(() => {
+        setItems(cart)
+    }, [])
+    
     return (
         <div style={{minHeight: '100vh'}}>
 
@@ -34,38 +40,169 @@ function ScannerApp() {
                     />
                     <Typography variant="caption" color="GrayText" component="p">Click on the QR Code to start scanning.</Typography>
                 </div>
-                <Button variant="contained" size="large" startIcon={<AccountBalanceWallet />} style={{borderRadius: 20}}>Pay Now</Button>
+                <Button 
+                    disabled={ cart ? cart?.length < 1 : true}
+                    variant="contained" size="large" startIcon={<AccountBalanceWallet />} style={{borderRadius: 20}}
+                    onClick={() => setOpenPayment(true)}
+                >Pay Now</Button>
             </div>
             <ScanDrawer open={openScan} onClose={() => setOpenScan(!openScan)} onOpen={() => setOpenScan(!openScan)} onChange={handleCartChange} />
-
+            {openPayment && (
+                <PaymentDialog open={openPayment} onClose={() => setOpenPayment(false)} />
+            )}
             <div style={{
                     minHeight: 'inherit',
                     padding: 10, 
                     background: '#391463', borderTopLeftRadius: 20, borderTopRightRadius: 20,}}>
                 <Typography variant="h6" style={{color: '#fff'}}>Your Cart</Typography>
                 <List>
-                    {items.length < 1 && (
+                    {(cart?.length < 1 || !cart )&& (
                         <ListItem>
                             <ListItemText 
                                 primary="Your cart is empty"
                                 secondary={
                                     <Typography variant="caption" color="GrayText">
-                                            Click on QR to start shopping.
+                                        Click on QR to start shopping.
                                     </Typography>
                                 }
                             />
                         </ListItem>
                     )}
-                    {items.map((item, index) => (
+                    {cart?.map((item, index) => (
                         <CartItem key={index} item={item} removeItem={handleRemove} />
                     ))}
+                </List>
+            </div>
+            <div style={{position: 'fixed', bottom: 0, width: '100vw', background: '#fff'}}>
+                <List>
+                    <ListItem secondaryAction={
+                        <Typography variant="h6">Php {cart ? parseFloat(cart?.reduce(totalReducer, 0)).toFixed(2) : `0.00`}</Typography>
+                    }>
+                        <ListItemText 
+                            primary={<Typography variant="h6">Total</Typography>} 
+                            secondary={<Typography variant="caption">{cart ? cart?.length : 0} items in cart</Typography>}
+                        />
+                    </ListItem>
                 </List>
             </div>
         </div>
     )
 }
 
-const CartItem = ({item, removeItem}) => {
+const PaymentDialog = ({open, onClose}) => {
+    const cart = fetchFromStorage('cart')
+    const [paymentDetails, setPaymentDetails] = useState(null)
+    
+    const createPaymentIntent = useCallback(async() => {
+        if (!cart) return
+        if (cart?.length < 1) return 
+        const order_details = {
+            total: cart?.reduce(totalReducer, 0),
+            cart
+        }
+        const {data} = await axiosInstance.post(`/orders`, order_details)
+        console.log(data)
+        setPaymentDetails(data.order) 
+    }, [cart])
+
+    useEffect(() => {
+        let mounted = true
+        if (mounted) {
+            console.log(1)
+            createPaymentIntent()
+        }
+        return () => mounted = false
+    }, [])
+
+    const handleRefresh = async () => {
+        const {data} = await axiosInstance.get(`/orders/${paymentDetails._id}`)
+        console.log(data)
+        setPaymentDetails(data.order)
+    }
+
+    const handleFinishTransaction = () => {
+        onClose()
+        saveToStorage('cart', [])
+    }
+    return (
+        <Dialog open={open} onClose={onClose} fullScreen>
+            <AppBar sx={{ position: 'relative' }}>
+                <Toolbar>
+                    {/* <IconButton
+                    edge="start"
+                    color="inherit"
+                    onClick={onClose}
+                    aria-label="close"
+                    >
+                        <Close />
+                    </IconButton> */}
+                    <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+                        {paymentDetails?.status !== 0 ? 'Transaction Details' : 'Waiting for Payment'}
+                    </Typography>
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        onClick={paymentDetails?.status !== 0 ? handleFinishTransaction : handleRefresh}
+                        aria-label="close"
+                    >
+                        {paymentDetails?.status !== 0 ? (
+                            <Close />
+                        ):(
+                            <Refresh />
+                        )}
+                    </IconButton>
+                </Toolbar>
+            </AppBar>
+
+            {paymentDetails?.status === 0 ? (
+                <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 10, margin: 10, 
+                    border: 'solid 1px #e1e1e1', borderRadius: 10
+                }}>
+                    <Typography variant="body2" component="h6" style={{textAlign: 'center', fontWeight: 'bold'}} gutterBottom>
+                        Instructions: Present to the cashier and pay the amount due.
+                    </Typography>
+                    <div style={{width: '80%'}}>
+                        <Typography style={{fontSize: 18}}>Total</Typography>
+                        <Typography style={{fontWeight: 'bold', fontSize: 50}}>₱ {(paymentDetails.total).toFixed(2)}</Typography>
+                    </div>
+                    <Typography style={{fontSize: 24}} gutterBottom>Status: {paymentDetails.status === 0 ? 'Pending' : 'Paid'}</Typography>
+                    <QRCode value={paymentDetails._id} size={256}/>
+                </div>
+                // <pre>{JSON.stringify(paymentDetails, null, 4)}</pre>
+            ): (
+                <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 10, margin: 10, 
+                border: 'solid 1px #e1e1e1', borderRadius: 10
+            }}>
+                    <Typography variant="h6" component="h6">
+                        Reference Number
+                    </Typography>
+                    {/* <QRCode value={paymentDetails?._id} size={128}/> */}
+                    <Typography variant="caption" component="h6" gutterBottom>
+                        {paymentDetails?._id}
+                    </Typography>
+                    <Typography variant="body2" component="h6" style={{fontWeight: 'bold'}}>
+                        Your Cart Items
+                    </Typography>
+                    {paymentDetails?.cart.map((item, index) => (
+                        <CartItem item={item} removeItem={() => console.log(1)} hasRemove={false} key={index}/>
+                    ))}
+                    {/* <pre>{JSON.stringify(paymentDetails?.cart, null, 1)}</pre> */}
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent:'space-between', width: '80%', marginBottom: 20}}>
+                        <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20}}>
+                            Total
+                        </Typography>
+                        <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20}}>
+                            ₱ {(paymentDetails?.total)?.toFixed(2)}
+                        </Typography>
+                    </div>
+                    {/* <Button variant="contained" size="small" fullWidth onClick={onClose} startIcon={<Receipt />}>Save Transaction</Button> */}
+                </div>
+            )}
+        </Dialog> 
+    )   
+}
+
+const CartItem = ({item, removeItem, hasRemove=true}) => {
     const [remove, setRemove] = useState(false)
     const price = parseFloat(item.initialPrice) + parseFloat(item.markupPrice)
     const handleRemove = (id) => {
@@ -76,9 +213,11 @@ const CartItem = ({item, removeItem}) => {
         <ListItem 
             style={{background: '#fff', marginBottom: 10, borderRadius: 10}}
             secondaryAction={
+                hasRemove ? 
                 <IconButton onClick={() => setRemove(true)}>
                     <Delete />
                 </IconButton>
+                : null
             }
         >
             <ListItemButton dense>
@@ -114,7 +253,6 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
     const [product, setProduct] = useState(null)
 
     const getProduct = React.useCallback(async(id) =>{
-        console.log(id)
         if(id) {
             const {data} = await axiosInstance.get(`/products/${id}`)
             console.log(data)
@@ -154,7 +292,7 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                                 onError={(err) => console.log(err)}
                                 onScan={handleScan}
                                 style={{ width: "100%" }}
-                                />
+                            />
                         </div>
                     </React.Fragment>
                 ): (
@@ -185,10 +323,25 @@ const ProductDetails = ({item, onClose, onChange}) => {
         const cart = fetchFromStorage('cart')
         item.quantity = quantity
         let new_cart = []
+        // if cart is empty
         if (!cart) {
+            //create a new cart and put item
             new_cart = [item]
         }else{
-            new_cart = [...cart, item]
+            // check if cart has product 
+            const hasProduct = cart.filter(a => a._id === item._id)
+            if (hasProduct.length > 0) {
+                // console.log(hasProduct)
+                const existing_item = hasProduct[0]
+                existing_item.quantity += item.quantity
+                // console.log('existingitem =>', existing_item)
+                // console.log('cart =>', cart)
+                
+                new_cart = [...cart.filter(a => a._id !== item._id), existing_item]
+            }else{
+                console.log(item)
+                new_cart = [...cart, item]
+            }
         }
         saveToStorage('cart', new_cart)
         onChange(new_cart)

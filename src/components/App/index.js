@@ -339,6 +339,7 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                         </div>
                         <div>
                             <QrReader
+                                facingMode="rear"
                                 delay={300}
                                 onError={(err) => console.log(err)}
                                 onScan={handleScan}

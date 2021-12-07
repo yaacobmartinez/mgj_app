@@ -1,4 +1,4 @@
-import { Add, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, ChevronLeft, Close, CloudDownload, CropFreeOutlined, Delete, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
+import { Add, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
 import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, Toolbar, Typography } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 import {AccountBalanceWallet} from '@mui/icons-material'
@@ -8,7 +8,6 @@ import QrReader from 'react-qr-scanner'
 import axiosInstance from '../../utils/axios'
 import { totalReducer } from '../../utils'
 import QRCode from 'qrcode.react'
-import {Html5Qrcode} from 'html5-qrcode'
 function ScannerApp() {
     const cart = fetchFromStorage('cart')
     const [items, setItems] = useState( cart || [])
@@ -326,7 +325,7 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                 }
             }}
         >
-            <div style={{height: '100vh'}}>
+            <div style={{height: '100vh', backgroundColor: '#E2FDFF'}}>
                 {!product ? (
                     <React.Fragment>
                         <div style={{padding: 10, position: 'absolute', top: 0, left: 0}}>
@@ -339,7 +338,6 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                         </div>
                         <div>
                             <QrReader
-                                facingMode="rear"
                                 delay={300}
                                 onError={(err) => console.log(err)}
                                 onScan={handleScan}
@@ -349,6 +347,8 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                                     objectFit: 'cover', 
                                     borderRadius: 20 
                                 }}
+                                facingMode="rear"
+                                maxImageSize={5000}
                             />
                         </div>
                     </React.Fragment>

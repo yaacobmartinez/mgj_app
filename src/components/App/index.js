@@ -1,13 +1,14 @@
-import { Add, AddShoppingCart, ChevronLeft, Close, CloudDownload, Delete, Receipt, Refresh, Remove,} from '@mui/icons-material'
-import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, Toolbar, Typography } from '@mui/material'
+import { Add, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, ChevronLeft, Close, CloudDownload, CropFreeOutlined, Delete, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
+import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, Toolbar, Typography } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 import {AccountBalanceWallet} from '@mui/icons-material'
 import { fetchFromStorage, saveToStorage, clearStorage } from '../../utils/storage'
-import QrReader from 'react-qr-reader'
+// import QrReader from 'react-qr-reader'
+import QrReader from 'react-qr-scanner'
 import axiosInstance from '../../utils/axios'
 import { totalReducer } from '../../utils'
 import QRCode from 'qrcode.react'
-
+import {Html5Qrcode} from 'html5-qrcode'
 function ScannerApp() {
     const cart = fetchFromStorage('cart')
     const [items, setItems] = useState( cart || [])
@@ -16,7 +17,6 @@ function ScannerApp() {
     const handleCartChange = (cart) => {
         setItems(cart)
     }
-
     const handleRemove = (id) => {
         const filtered_cart = cart.filter(a => a._id !== id)
         setItems(filtered_cart)
@@ -28,9 +28,48 @@ function ScannerApp() {
     }, [])
     
     return (
-        <div style={{minHeight: '100vh'}}>
-
-            <div style={{margin: "20px 0px", textAlign: 'center'}}>
+        <div style={{minHeight: '100vh', backgroundColor: '#E2FDFF'}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 10}}>
+                <Avatar onClick={() => window.location.reload()} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
+                    <RefreshOutlined />
+                </Avatar>
+                <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', }} variant="rounded" style={{borderRadius: '16px'}}>
+                    <ShareOutlined />
+                </Avatar>
+            </div>
+            <div style={{
+                padding: 10, borderRadius: 20, height: 200, textAlign: 'center',
+                margin: 20,
+                background: "linear-gradient(90deg, hsla(333, 100%, 53%, 1) 0%, hsla(33, 94%, 57%, 1) 100%)", 
+                boxShadow: '0px 39px 66px 0px rgba(0,0,0,0.42)',
+            }}>
+                <Typography variant="h6" style={{color: '#fff'}}>Balance</Typography>
+                <Typography variant="caption" style={{color: '#fff', fontSize: '1.5rem'}}>₱{" "}</Typography>
+                <Typography variant="caption" style={{color: '#fff', fontSize: '4rem', fontWeight: 'bolder'}}> {cart ? parseFloat(cart?.reduce(totalReducer, 0)).toFixed(2) : `0.00`}</Typography>
+                <br/>
+                <Button 
+                    onClick={() => setOpenPayment(true)}
+                    variant="contained" sx={{backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius:20, paddingX: 10, paddingY: 2}} size="large"> 
+                    <Typography sx={{color: "#fff"}}>Pay Now</Typography>
+                </Button>
+            </div>
+            <div style={{padding: 20, marginTop: 40}}>
+                <Typography sx={{fontSize: 20, fontWeight: 'bold', color: '#6C6F7D'}}>Recent Products</Typography>
+                <Grid container spacing={2}>
+                    {cart?.map((item) => (
+                        <Grid item xs={4} sx={{textAlign: 'center', padding:2}} key={item}>
+                            <Avatar alt="test" src={item?.media[0]}
+                                sx={{height: '100%', width: '100%', marginY: 1, }}
+                                variant="rounded"
+                                style={{borderRadius: '16px'}}
+                            />
+                            <Typography variant="caption" style={{fontWeight: 'bold'}}>{item?.name}</Typography>
+                        </Grid>
+                    ))}
+                    
+                </Grid>
+            </div>
+            {/* <div style={{margin: "20px 0px", textAlign: 'center'}}>
                 <Typography variant="h6" style={{textAlign: 'left', marginLeft: 20, fontWeight: 600}}>
                     Welcome to MGJ Shop
                 </Typography>
@@ -45,12 +84,12 @@ function ScannerApp() {
                     variant="contained" size="large" startIcon={<AccountBalanceWallet />} style={{borderRadius: 20}}
                     onClick={() => setOpenPayment(true)}
                 >Pay Now</Button>
-            </div>
+            </div> */}
             <ScanDrawer open={openScan} onClose={() => setOpenScan(!openScan)} onOpen={() => setOpenScan(!openScan)} onChange={handleCartChange} />
             {openPayment && (
                 <PaymentDialog open={openPayment} onClose={() => setOpenPayment(false)} />
             )}
-            <div style={{
+            {/* <div style={{
                     minHeight: 'inherit',
                     padding: 10, 
                     background: '#391463', borderTopLeftRadius: 20, borderTopRightRadius: 20,}}>
@@ -72,18 +111,24 @@ function ScannerApp() {
                         <CartItem key={index} item={item} removeItem={handleRemove} />
                     ))}
                 </List>
-            </div>
-            <div style={{position: 'fixed', bottom: 0, width: '100vw', background: '#fff'}}>
-                <List>
-                    <ListItem secondaryAction={
-                        <Typography variant="h6">Php {cart ? parseFloat(cart?.reduce(totalReducer, 0)).toFixed(2) : `0.00`}</Typography>
-                    }>
-                        <ListItemText 
-                            primary={<Typography variant="h6">Total</Typography>} 
-                            secondary={<Typography variant="caption">{cart ? cart?.length : 0} items in cart</Typography>}
-                        />
-                    </ListItem>
-                </List>
+            </div> */}
+            <div style={{position: 'fixed', paddingBottom: 30, paddingTop: 10, bottom: 0, width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'space-evenly'}}>
+                <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
+                    <HomeOutlined />
+                </Avatar>
+                <Avatar  
+                    onClick={() => setOpenScan(!openScan)}
+                    alt="Scan Product"
+                    sx={{ width: 60, height: 60, 
+                        background: "linear-gradient(90deg, hsla(333, 100%, 53%, 1) 0%, hsla(33, 94%, 57%, 1) 100%)"
+                    }}
+                    variant="rounded" style={{borderRadius: '16px', boxShadow: '0px 22px 42px -14px rgba(0,0,0,0.42)'}}
+                >
+                    <CropFreeOutlined />
+                </Avatar>
+                <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
+                    <ShoppingCartOutlined />
+                </Avatar>
             </div>
         </div>
     )
@@ -260,8 +305,11 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
         }
     },[])
 
-    const handleScan = (id) => {
-        getProduct(id)
+    const handleScan = (data) => {
+        if (data) {
+            getProduct(data.text)
+        }
+        
     }
     useEffect(() => {
         setProduct(null)
@@ -274,31 +322,41 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
             onOpen={onOpen}
             PaperProps={{
                 style: {
-                    borderTopLeftRadius: 20,
-                    borderTopRightRadius: 20,
+                    borderRadius: 20,
                 }
             }}
         >
-            <div style={{height: '90vh', padding: '5vw'}}>
+            <div style={{height: '100vh'}}>
                 {!product ? (
                     <React.Fragment>
-                        <div style={{padding: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <Typography variant="h6">Scan Your Product</Typography>
-                            <IconButton onClick={onClose}><Close /></IconButton>
+                        <div style={{padding: 10, position: 'absolute', top: 0, left: 0}}>
+                            <Avatar onClick={onClose} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', zIndex: 10000 }} variant="rounded" style={{borderRadius: '16px'}}>
+                                <ArrowBackOutlined />
+                            </Avatar>
+                        </div>
+                        <div style={{padding: 10, width: '95%', borderRadius: 10, position: 'absolute', top: 100,  textAlign: 'center', background: 'rgba(0, 0, 0, 0.4)'}}>
+                            <Typography variant="body2" sx={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>Point camera at a QRCode</Typography>
                         </div>
                         <div>
                             <QrReader
                                 delay={300}
                                 onError={(err) => console.log(err)}
                                 onScan={handleScan}
-                                style={{ width: "100%" }}
+                                style={{ 
+                                    height: '100vh',
+                                    width: '100%', 
+                                    objectFit: 'cover', 
+                                    borderRadius: 20 
+                                }}
                             />
                         </div>
                     </React.Fragment>
                 ): (
                     <React.Fragment>
-                        <div style={{padding: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <IconButton onClick={() => setProduct(null)} size="large"><ChevronLeft /></IconButton>
+                        <div style={{padding: 10, position: 'absolute', top: 0, left: 0}}>
+                            <Avatar onClick={onClose} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', zIndex: 10000 }} variant="rounded" style={{borderRadius: '16px'}}>
+                                <ArrowBackOutlined />
+                            </Avatar>
                         </div>
                         <ProductDetails item={product} onClose={onClose} onChange={onChange}/>
                     </React.Fragment>
@@ -348,7 +406,7 @@ const ProductDetails = ({item, onClose, onChange}) => {
         onClose()
     }
     return (
-        <div>
+        <div style={{padding: 15, marginTop: 50}}>
             <img src={item.media[0]} alt={item.name} style={{width: "90vw", height: 340, backgroundSize: 'cover', borderRadius: 10, border: 'solid 1px #e1e1e1'}}/>
             <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingTop: 20}}>
                 <div>

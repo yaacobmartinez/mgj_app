@@ -446,7 +446,7 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                                 <ArrowBackOutlined />
                             </Avatar>
                         </div>
-                        <div style={{padding: 10, width: '95%', borderRadius: 10, position: 'absolute', top: '50%',  textAlign: 'center'}}>
+                        <div style={{padding: 10, width: '95%', borderRadius: 10, position: 'absolute', bottom: 50,  textAlign: 'center'}}>
                             <Typography variant="body2" sx={{color: '#000', fontSize: 18, fontWeight: 'bold'}}>Point camera at a QRCode</Typography>
                         </div>
                         <div>

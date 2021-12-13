@@ -1,4 +1,4 @@
-import { Add, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
+import { Add, AddCircle, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, Backspace, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, DeleteSweep, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, RemoveCircle, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
 import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, Toolbar, Typography } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 import {AccountBalanceWallet} from '@mui/icons-material'
@@ -8,11 +8,22 @@ import QrReader from 'react-qr-scanner'
 import axiosInstance from '../../utils/axios'
 import { totalReducer } from '../../utils'
 import QRCode from 'qrcode.react'
+import {
+    LeadingActions,
+    SwipeableList,
+    SwipeableListItem,
+    SwipeAction,
+    TrailingActions,
+    Type as ListType,
+  } from 'react-swipeable-list';
+  import 'react-swipeable-list/dist/styles.css';
+
 function ScannerApp() {
     const cart = fetchFromStorage('cart')
     const [items, setItems] = useState( cart || [])
     const [openScan, setOpenScan] = useState(false)
     const [openPayment, setOpenPayment] = useState(false)
+    const [openCart, setOpenCart] = useState(false)
     const handleCartChange = (cart) => {
         setItems(cart)
     }
@@ -58,7 +69,7 @@ function ScannerApp() {
                     {cart?.map((item) => (
                         <Grid item xs={4} sx={{textAlign: 'center', padding:2}} key={item}>
                             <Avatar alt="test" src={item?.media[0]}
-                                sx={{height: '100%', width: '100%', marginY: 1, }}
+                                sx={{height: 85, width: '100%', marginY: 1, }}
                                 variant="rounded"
                                 style={{borderRadius: '16px'}}
                             />
@@ -68,49 +79,12 @@ function ScannerApp() {
                     
                 </Grid>
             </div>
-            {/* <div style={{margin: "20px 0px", textAlign: 'center'}}>
-                <Typography variant="h6" style={{textAlign: 'left', marginLeft: 20, fontWeight: 600}}>
-                    Welcome to MGJ Shop
-                </Typography>
-                <div style={{width: 200, margin: '20px auto 10px', textAlign: 'center',}}>
-                    <img src="./images/mainQR.png" alt="mainQR" style={{height: 170,borderRadius: 10}}
-                        onClick={() => setOpenScan(!openScan)}
-                    />
-                    <Typography variant="caption" color="GrayText" component="p">Click on the QR Code to start scanning.</Typography>
-                </div>
-                <Button 
-                    disabled={ cart ? cart?.length < 1 : true}
-                    variant="contained" size="large" startIcon={<AccountBalanceWallet />} style={{borderRadius: 20}}
-                    onClick={() => setOpenPayment(true)}
-                >Pay Now</Button>
-            </div> */}
             <ScanDrawer open={openScan} onClose={() => setOpenScan(!openScan)} onOpen={() => setOpenScan(!openScan)} onChange={handleCartChange} />
+            <CartDrawer handlePay={() => setOpenPayment(true)} handleRemove={handleRemove} open={openCart} onClose={() => setOpenCart(!openCart)} onOpen={() => setOpenCart(!openCart)} onChange={handleCartChange} />
             {openPayment && (
                 <PaymentDialog open={openPayment} onClose={() => setOpenPayment(false)} />
             )}
-            {/* <div style={{
-                    minHeight: 'inherit',
-                    padding: 10, 
-                    background: '#391463', borderTopLeftRadius: 20, borderTopRightRadius: 20,}}>
-                <Typography variant="h6" style={{color: '#fff'}}>Your Cart</Typography>
-                <List>
-                    {(cart?.length < 1 || !cart )&& (
-                        <ListItem>
-                            <ListItemText 
-                                primary="Your cart is empty"
-                                secondary={
-                                    <Typography variant="caption" color="GrayText">
-                                        Click on QR to start shopping.
-                                    </Typography>
-                                }
-                            />
-                        </ListItem>
-                    )}
-                    {cart?.map((item, index) => (
-                        <CartItem key={index} item={item} removeItem={handleRemove} />
-                    ))}
-                </List>
-            </div> */}
+            
             <div style={{position: 'fixed', paddingBottom: 30, paddingTop: 10, bottom: 0, width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'space-evenly'}}>
                 <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
                     <HomeOutlined />
@@ -125,7 +99,9 @@ function ScannerApp() {
                 >
                     <CropFreeOutlined />
                 </Avatar>
-                <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
+                <Avatar
+                    onClick={() => setOpenCart(!openCart)}
+                    sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
                     <ShoppingCartOutlined />
                 </Avatar>
             </div>
@@ -293,9 +269,133 @@ const CartItem = ({item, removeItem, hasRemove=true}) => {
     )
 }
 
+
+const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) => {
+    const cart = fetchFromStorage('cart')
+    const handleAddQuantity = (item) => {
+        item.quantity += 1
+        const newCart = [...cart.filter(a => a._id !== item._id), item]
+        saveToStorage('cart', newCart)
+        onChange(newCart)
+    }
+    const handleRemoveQuantity = (item) => {
+        if (item.quantity > 1){
+            item.quantity -= 1
+            const newCart = [...cart.filter(a => a._id !== item._id), item]
+            saveToStorage('cart', newCart)
+            onChange(newCart)
+        }
+    }
+    const leadingActions = (item) => (
+        <LeadingActions>
+          <SwipeAction onClick={() =>handleAddQuantity(item)}>
+            <div>
+                <IconButton sx={{color: '#317B22',  height: "100%"}}>
+                    <AddCircle />
+                </IconButton>
+            </div>
+          </SwipeAction>
+          <SwipeAction onClick={() => handleRemoveQuantity(item)}>
+            <div>
+                <IconButton sx={{color: '#FD151B', height: "100%"}}>
+                    <RemoveCircle />
+                </IconButton>
+            </div>
+          </SwipeAction>
+        </LeadingActions>
+      );
+      
+      const trailingActions = (data) => (
+        <TrailingActions>
+          <SwipeAction
+            destructive={true}
+            onClick={() => handleRemove(data._id)}
+          >
+              <div>
+                <IconButton sx={{color: '#317B22',  height: "100%"}}>
+                    <DeleteSweep />
+                </IconButton>
+                <Typography variant="caption" sx={{color: '#317B22'}}>Remove</Typography> 
+              </div>
+          </SwipeAction>
+        </TrailingActions>
+      );
+    return (
+        <SwipeableDrawer
+        anchor="bottom"
+        open={open}
+        onClose={onClose}
+        onOpen={onOpen}
+        PaperProps={{
+            style: {
+                borderRadius: 20,
+            }
+        }}
+    >
+        <div style={{height: '90vh'}}>
+            <div style={{padding: 10, position: 'absolute', top: 0, left: 0}}>
+                <Avatar onClick={onClose} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', zIndex: 10000 }} variant="rounded" style={{borderRadius: '16px'}}>
+                    <ArrowBackOutlined />
+                </Avatar>
+            </div>
+            <div style={{width: '100%', marginTop: 20}}>
+                <Typography variant="body2" sx={{color: '#000', fontSize: 18, fontWeight: 'bold', textAlign: 'center'}}>Your Cart Items</Typography>
+            </div>
+            <SwipeableList style={{marginTop: 20}} fullSwipe={false} type={ListType.IOS}>
+                {cart?.map((item, index) => (
+                    <SwipeableListItem
+                        key={index}
+                        leadingActions={leadingActions(item)}
+                        trailingActions={trailingActions(item)}
+                    >
+                        <ListItem alignItems="center" sx={{padding: 2}}>
+                            <ListItemAvatar>
+                                <img alt={item.name} src={item.media[0]} style={{marginRight: 20, borderRadius: 50, boxShadow: '3px 15px 24px -13px rgba(0,0,0,0.9)', height: 50, width: 50}} />
+                                {/* <Avatar alt={item.name} src={item.media[0]} sx={{boxShadow: '0px 22px 42px -14px rgba(0,0,0,0.42)'}}/> */}
+                            </ListItemAvatar>
+                            <ListItemText primary={
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                    <div>
+                                        <Typography variant="caption" sx={{fontWeight: 'bold', color: '#5941A9'}}>{item.quantity}</Typography>
+                                        <Typography variant="caption" sx={{marginX: 1, color: 'GrayText'}}>x</Typography>
+                                        <Typography variant="caption" sx={{fontSize: 16, fontWeight: 'bold', color: '#5941A9'}}>{item.name}</Typography>
+                                    </div>
+                                    <Typography variant="body2" sx={{fontSize: 16, color: 'GrayText'}}>₱ {(parseFloat(item.initialPrice) + parseFloat(item.markupPrice)).toFixed(2)}</Typography>
+                                </div>
+                            } />
+                        </ListItem>
+                    </SwipeableListItem>
+                ))}
+                
+            </SwipeableList>
+
+            <div style={{position: 'fixed', paddingBottom: 30, paddingTop: 10, bottom: 0, width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'space-evenly'}}>
+                <Button  
+                    onClick={handlePay}
+                    alt="Scan Product"
+                    sx={{
+                        width: '70%',
+                        paddingY: 1, 
+                        fontWeight: 'bold',
+                        background: "linear-gradient(90deg, hsla(333, 100%, 53%, 1) 0%, hsla(33, 94%, 57%, 1) 100%)"
+                    }}
+                    variant="rounded" style={{borderRadius: '16px', boxShadow: '0px 22px 42px -14px rgba(0,0,0,0.42)', color: '#fff',}}
+                >
+                    Pay Now
+                </Button>
+            </div>
+        </div>
+    </SwipeableDrawer>
+    )
+}
+
 const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
     const [product, setProduct] = useState(null)
 
+    const handleClose = () => {
+        setProduct(null)
+        onClose()
+    }
     const getProduct = React.useCallback(async(id) =>{
         if(id) {
             const {data} = await axiosInstance.get(`/products/${id}`)
@@ -311,13 +411,17 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
         
     }
     useEffect(() => {
-        setProduct(null)
+        var isMounted = true
+        if(isMounted) {
+            setProduct(null)
+        }
+        return () => isMounted = false
     }, [])
     return (
         <SwipeableDrawer
             anchor="bottom"
             open={open}
-            onClose={onClose}
+            onClose={handleClose}
             onOpen={onOpen}
             PaperProps={{
                 style: {
@@ -329,7 +433,7 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                 {!product ? (
                     <React.Fragment>
                         <div style={{padding: 10, position: 'absolute', top: 0, left: 0}}>
-                            <Avatar onClick={onClose} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', zIndex: 10000 }} variant="rounded" style={{borderRadius: '16px'}}>
+                            <Avatar onClick={handleClose} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', zIndex: 10000 }} variant="rounded" style={{borderRadius: '16px'}}>
                                 <ArrowBackOutlined />
                             </Avatar>
                         </div>
@@ -355,11 +459,11 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                 ): (
                     <React.Fragment>
                         <div style={{padding: 10, position: 'absolute', top: 0, left: 0}}>
-                            <Avatar onClick={onClose} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', zIndex: 10000 }} variant="rounded" style={{borderRadius: '16px'}}>
+                            <Avatar onClick={handleClose} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', zIndex: 10000 }} variant="rounded" style={{borderRadius: '16px'}}>
                                 <ArrowBackOutlined />
                             </Avatar>
                         </div>
-                        <ProductDetails item={product} onClose={onClose} onChange={onChange}/>
+                        <ProductDetails item={product} onClose={handleClose} onChange={onChange}/>
                     </React.Fragment>
                 )}
             </div>
@@ -439,4 +543,6 @@ const ProductDetails = ({item, onClose, onChange}) => {
         </div>
     )
 }
+
+
 export default ScannerApp

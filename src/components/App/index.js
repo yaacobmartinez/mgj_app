@@ -360,7 +360,9 @@ const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) 
                                         <Typography variant="caption" sx={{marginX: 1, color: 'GrayText'}}>x</Typography>
                                         <Typography variant="caption" sx={{fontSize: 16, fontWeight: 'bold', color: '#5941A9'}}>{item.name}</Typography>
                                     </div>
-                                    <Typography variant="body2" sx={{fontSize: 16, color: 'GrayText'}}>₱ {(parseFloat(item.initialPrice) + parseFloat(item.markupPrice)).toFixed(2)}</Typography>
+                                    <Typography variant="body2" sx={{fontSize: 16, color: 'GrayText'}}>
+                                        ₱ {((parseFloat(item.initialPrice) + parseFloat(item.markupPrice)) * parseFloat(item.quantity)).toFixed(2)}
+                                    </Typography>
                                 </div>
                             } />
                         </ListItem>

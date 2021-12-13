@@ -3,8 +3,8 @@ import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, Grid, IconButton
 import React, { useCallback, useEffect, useState } from 'react'
 import {AccountBalanceWallet} from '@mui/icons-material'
 import { fetchFromStorage, saveToStorage, clearStorage } from '../../utils/storage'
-// import QrReader from 'react-qr-reader'
-import QrReader from 'react-qr-scanner'
+import QrReader from 'react-qr-reader'
+// import QrReader from 'react-qr-scanner'
 import axiosInstance from '../../utils/axios'
 import { totalReducer } from '../../utils'
 import QRCode from 'qrcode.react'
@@ -393,12 +393,12 @@ const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) 
 
 const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
     const [product, setProduct] = useState(null)
-    const [facingMode, setFacingMode] = useState("rear")
+    const [facingMode, setFacingMode] = useState("environment")
     const handleFacingMode = () => {
-        if (facingMode === "rear") {
-            return setFacingMode('front')
+        if (facingMode === "environment") {
+            return setFacingMode('user')
         }
-        return setFacingMode('rear')
+        return setFacingMode('environment')
     }
     const handleClose = () => {
         setProduct(null)
@@ -413,8 +413,9 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
     },[])
 
     const handleScan = (data) => {
+        // console.log(data)
         if (data) {
-            getProduct(data.text)
+            getProduct(data)
         }
         
     }
@@ -445,12 +446,11 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                                 <ArrowBackOutlined />
                             </Avatar>
                         </div>
-                        <div style={{padding: 10, width: '95%', borderRadius: 10, position: 'absolute', top: 100,  textAlign: 'center', background: 'rgba(0, 0, 0, 0.4)'}}>
-                            <Typography variant="body2" sx={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>Point camera at a QRCode</Typography>
+                        <div style={{padding: 10, width: '95%', borderRadius: 10, position: 'absolute', top: '50%',  textAlign: 'center'}}>
+                            <Typography variant="body2" sx={{color: '#000', fontSize: 18, fontWeight: 'bold'}}>Point camera at a QRCode</Typography>
                         </div>
                         <div>
                             <QrReader
-                                delay={300}
                                 onError={(err) => console.log(err)}
                                 onScan={handleScan}
                                 style={{ 
@@ -460,12 +460,11 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                                     borderRadius: 20 
                                 }}
                                 facingMode={facingMode}
-                                maxImageSize={5000}
                             />
                         </div>
                         <div style={{padding: 10, width: '95%', borderRadius: 10, position: 'absolute', bottom: 100,  textAlign: 'center'}}>
                             <IconButton onClick={handleFacingMode}>
-                                <Cameraswitch sx={{color: 'white'}} fontSize='large'/>
+                                <Cameraswitch sx={{color: '#000'}} fontSize='large'/>
                             </IconButton>
                         </div>
                     </React.Fragment>

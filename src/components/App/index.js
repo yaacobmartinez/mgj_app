@@ -1,4 +1,4 @@
-import { Add, AddCircle, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, Backspace, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, DeleteSweep, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, RemoveCircle, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
+import { Add, AddCircle, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, Backspace, Cameraswitch, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, DeleteSweep, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, RemoveCircle, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
 import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, Toolbar, Typography } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 import {AccountBalanceWallet} from '@mui/icons-material'
@@ -391,7 +391,13 @@ const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) 
 
 const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
     const [product, setProduct] = useState(null)
-
+    const [facingMode, setFacingMode] = useState("rear")
+    const handleFacingMode = () => {
+        if (facingMode === "rear") {
+            return setFacingMode('front')
+        }
+        return setFacingMode('rear')
+    }
     const handleClose = () => {
         setProduct(null)
         onClose()
@@ -451,9 +457,14 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
                                     objectFit: 'cover', 
                                     borderRadius: 20 
                                 }}
-                                facingMode="rear"
+                                facingMode={facingMode}
                                 maxImageSize={5000}
                             />
+                        </div>
+                        <div style={{padding: 10, width: '95%', borderRadius: 10, position: 'absolute', bottom: 100,  textAlign: 'center'}}>
+                            <IconButton onClick={handleFacingMode}>
+                                <Cameraswitch sx={{color: 'white'}} fontSize='large'/>
+                            </IconButton>
                         </div>
                     </React.Fragment>
                 ): (

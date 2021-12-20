@@ -1,6 +1,6 @@
-import { Add, AddCircle, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, Backspace, Cameraswitch, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, DeleteSweep, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, RemoveCircle, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
+import { Add, AddCircle, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, Backspace, Cameraswitch, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, DeleteSweep, Download, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, RemoveCircle, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
 import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, Toolbar, Typography } from '@mui/material'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { createRef, useCallback, useEffect, useState } from 'react'
 import {AccountBalanceWallet} from '@mui/icons-material'
 import { fetchFromStorage, saveToStorage, clearStorage } from '../../utils/storage'
 import QrReader from 'react-qr-reader'
@@ -8,6 +8,8 @@ import QrReader from 'react-qr-reader'
 import axiosInstance from '../../utils/axios'
 import { totalReducer } from '../../utils'
 import QRCode from 'qrcode.react'
+import { useScreenshot } from 'use-react-screenshot'
+
 import {
     LeadingActions,
     SwipeableList,
@@ -19,6 +21,7 @@ import {
   import 'react-swipeable-list/dist/styles.css';
 
 function ScannerApp() {
+    
     const cart = fetchFromStorage('cart')
     const [items, setItems] = useState( cart || [])
     const [openScan, setOpenScan] = useState(false)
@@ -144,6 +147,17 @@ const PaymentDialog = ({open, onClose}) => {
         onClose()
         saveToStorage('cart', [])
     }
+
+    const ref = createRef()
+    const [image, takeScreenshot] = useScreenshot()
+    const getImage = () =>{ 
+        takeScreenshot(ref.current)
+        var a = document.createElement("a"); //Create <a>
+        a.href = image; //Image Base64 Goes here
+        a.download = "transaction.png"; //File name Here
+        a.click()
+    }
+
     return (
         <Dialog open={open} onClose={onClose} fullScreen>
             <AppBar sx={{ position: 'relative' }}>
@@ -190,12 +204,19 @@ const PaymentDialog = ({open, onClose}) => {
                 </div>
                 // <pre>{JSON.stringify(paymentDetails, null, 4)}</pre>
             ): (
-                <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 10, margin: 10, 
+                <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', margin: 10, 
                 border: 'solid 1px #e1e1e1', borderRadius: 10
             }}>
+                    <div style={{position: 'absolute', top: 70, right: 15}}>
+                        <IconButton size="small" onClick={getImage}>
+                            <Download />
+                        </IconButton>
+                    </div>
+                    <div ref={ref} style={{margin: 10}}>
                     <Typography variant="h6" component="h6">
                         Reference Number
                     </Typography>
+                    
                     {/* <QRCode value={paymentDetails?._id} size={128}/> */}
                     <Typography variant="caption" component="h6" gutterBottom>
                         {paymentDetails?._id}
@@ -214,6 +235,7 @@ const PaymentDialog = ({open, onClose}) => {
                         <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20}}>
                             ₱ {(paymentDetails?.total)?.toFixed(2)}
                         </Typography>
+                    </div>
                     </div>
                     {/* <Button variant="contained" size="small" fullWidth onClick={onClose} startIcon={<Receipt />}>Save Transaction</Button> */}
                 </div>

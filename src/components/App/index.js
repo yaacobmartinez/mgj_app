@@ -46,9 +46,9 @@ function ScannerApp() {
                 <Avatar onClick={() => window.location.reload()} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
                     <RefreshOutlined />
                 </Avatar>
-                <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', }} variant="rounded" style={{borderRadius: '16px'}}>
+                {/* <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', }} variant="rounded" style={{borderRadius: '16px'}}>
                     <ShareOutlined />
-                </Avatar>
+                </Avatar> */}
             </div>
             <div style={{
                 padding: 10, borderRadius: 20, height: 200, textAlign: 'center',

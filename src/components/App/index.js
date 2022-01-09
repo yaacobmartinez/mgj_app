@@ -127,15 +127,15 @@ const PaymentDialog = ({open, onClose}) => {
         console.log(data)
         setPaymentDetails(data.order) 
     }, [cart])
-
-    useEffect(() => {
+ 
+     useEffect(() => {
         let mounted = true
         if (mounted) {
             console.log(1)
             createPaymentIntent()
         }
         return () => mounted = false
-    }, [])
+     }, [])
 
     const handleRefresh = async () => {
         const {data} = await axiosInstance.get(`/orders/${paymentDetails._id}`)
@@ -213,29 +213,62 @@ const PaymentDialog = ({open, onClose}) => {
                         </IconButton>
                     </div>
                     <div ref={ref} style={{margin: 10}}>
-                    <Typography variant="h6" component="h6">
-                        Reference Number
+                    <Typography variant="body2" component="h6" gutterBottom style={{textAlign: 'center'}}>
+                        MGJ FOOD Product Trading
                     </Typography>
-                    
+                    <Typography variant="body2" component="h6" gutterBottom style={{textAlign: 'center'}}>
+                        880 Cabiawan, Banga 1st 3004 Plaridel, Philippines
+                    </Typography>
+                    <Divider />
+                    <Typography variant="body2" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}}>
+                        **SALES INVOICE**
+                    </Typography>
                     {/* <QRCode value={paymentDetails?._id} size={128}/> */}
-                    <Typography variant="caption" component="h6" gutterBottom>
-                        {paymentDetails?._id}
+                    <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} >
+                        INVOICE ID: {paymentDetails?._id}
                     </Typography>
-                    <Typography variant="body2" component="h6" style={{fontWeight: 'bold'}}>
-                        Your Cart Items
-                    </Typography>
+                    <Divider />
                     {paymentDetails?.cart.map((item, index) => (
                         <CartItem item={item} removeItem={() => console.log(1)} hasRemove={false} key={index}/>
                     ))}
-                    {/* <pre>{JSON.stringify(paymentDetails?.cart, null, 1)}</pre> */}
-                    <div style={{display: 'flex', alignItems: 'center', justifyContent:'space-between', width: '80%', marginBottom: 20}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between' , alignItems: "center", width: '100%', paddingBottom:10}} >
+                        <Typography variant="caption">Item(s) : {paymentDetails?.cart?.length}</Typography>
+                        <Typography variant="caption" style={{textAlign: 'right'}}>Qty(s) : {paymentDetails?.cart?.reduce((prev, current) =>  parseFloat(prev) + parseFloat(current.quantity),0)}</Typography>
+                    </div>
+                    <Divider />
+                    <div style={{display: 'flex', justifyContent: 'space-between' , alignItems: "center", width: '100%', paddingBottom:20, marginTop: 10,}}>
+                        <Typography variant="caption">SUBTOTAL</Typography>
+                        <Typography variant="caption" style={{textAlign: 'right'}}>{paymentDetails?.total?.toFixed(2)}</Typography>
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'space-between' , alignItems: "center", width: '100%'}}>
+                        <Typography variant="caption">Vatable Sales</Typography>
+                        <Typography variant="caption" style={{textAlign: 'right'}}>{parseFloat(parseFloat(paymentDetails?.total) / parseFloat(1.12)).toFixed(2)}</Typography>
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'space-between' , alignItems: "center", width: '100%', paddingBottom: 20}}>
+                        <Typography variant="caption">Vat Amount</Typography>
+                        <Typography variant="caption" style={{textAlign: 'right'}}>{(parseFloat(paymentDetails?.total) - (parseFloat(parseFloat(paymentDetails?.total) / parseFloat(1.12)))).toFixed(2)}</Typography>
+                    </div>
+                    <Divider />
+
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent:'space-between', width: '100%', marginBottom: 20, marginTop: 20}}>
                         <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20}}>
                             Total
                         </Typography>
-                        <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20}}>
+                        <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20, textAlign: 'right'}}>
                             ₱ {(paymentDetails?.total)?.toFixed(2)}
                         </Typography>
                     </div>
+                    <Divider />
+                    <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} color="GrayText">
+                        **STRICTLY NO CASH REFUND.**
+                    </Typography>
+                    <Divider />
+                    <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} color="GrayText">
+                        THIS SERVES AS YOUR SALES INVOICE
+                    </Typography>
+                    <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} color="GrayText">
+                        THANK YOU FOR SHOPPING WITH US
+                    </Typography>
                     </div>
                     {/* <Button variant="contained" size="small" fullWidth onClick={onClose} startIcon={<Receipt />}>Save Transaction</Button> */}
                 </div>
@@ -570,9 +603,11 @@ const ProductDetails = ({item, onClose, onChange}) => {
                 <Typography variant="h6">Php {(parseFloat(price) * parseInt(quantity)).toFixed(2)}</Typography>
             </div>
             <div>
+                
                 <Button fullWidth style={{borderRadius: 20}} size="large" variant="contained" startIcon={<AddShoppingCart />}
                     onClick={handleAddToCart}
-                >Add To Cart</Button>
+                    disabled={item.stocks < 1}
+                >{item?.stocks < 1 ? `Out of Stock` : `Add To Cart`}</Button>
             </div>
         </div>
     )

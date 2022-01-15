@@ -19,9 +19,10 @@ import {
     Type as ListType,
   } from 'react-swipeable-list';
   import 'react-swipeable-list/dist/styles.css';
+import { useHistory } from 'react-router-dom'
 
 function ScannerApp() {
-    
+    const history = useHistory()
     const cart = fetchFromStorage('cart')
     const [items, setItems] = useState( cart || [])
     const [openScan, setOpenScan] = useState(false)
@@ -41,7 +42,7 @@ function ScannerApp() {
     }, [])
     
     return (
-        <div style={{minHeight: '100vh', backgroundColor: '#E2FDFF'}}>
+        <div style={{minHeight: '100vh', backgroundColor: '#E2FDFF', paddingBottom: 100}}>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 10}}>
                 <Avatar onClick={() => window.location.reload()} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
                     <RefreshOutlined />
@@ -61,6 +62,7 @@ function ScannerApp() {
                 <Typography variant="caption" style={{color: '#fff', fontSize: '4rem', fontWeight: 'bolder'}}> {cart ? parseFloat(cart?.reduce(totalReducer, 0)).toFixed(2) : `0.00`}</Typography>
                 <br/>
                 <Button 
+                    disabled={items?.length < 1}
                     onClick={() => setOpenPayment(true)}
                     variant="contained" sx={{backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius:20, paddingX: 10, paddingY: 2}} size="large"> 
                     <Typography sx={{color: "#fff"}}>Pay Now</Typography>
@@ -89,7 +91,9 @@ function ScannerApp() {
             )}
             
             <div style={{position: 'fixed', paddingBottom: 30, paddingTop: 10, bottom: 0, width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'space-evenly'}}>
-                <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
+                <Avatar 
+                    onClick={() => history.push(`/`)}
+                    sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
                     <HomeOutlined />
                 </Avatar>
                 <Avatar  
@@ -339,6 +343,10 @@ const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) 
             const newCart = [...cart.filter(a => a._id !== item._id), item]
             saveToStorage('cart', newCart)
             onChange(newCart)
+        }else{
+            const newCart = cart.filter(a => a._id !== item._id)
+            saveToStorage('cart', newCart)
+            onChange(newCart)
         }
     }
     const leadingActions = (item) => (
@@ -397,7 +405,7 @@ const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) 
                 <Typography variant="body2" sx={{color: '#000', fontSize: 18, fontWeight: 'bold', textAlign: 'center'}}>Your Cart Items</Typography>
             </div>
             <SwipeableList style={{marginTop: 20}} fullSwipe={false} type={ListType.IOS}>
-                {cart?.map((item, index) => (
+                {cart?.sort((a, b) => a.stocks - b.stocks).map((item, index) => (
                     <SwipeableListItem
                         key={index}
                         leadingActions={leadingActions(item)}
@@ -463,6 +471,7 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
         if(id) {
             const {data} = await axiosInstance.get(`/products/${id}`)
             console.log(data)
+            if (data.product.status !== 'Active') return
             setProduct(data.product)
         }
     },[])

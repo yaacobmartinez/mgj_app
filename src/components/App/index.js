@@ -19,9 +19,10 @@ import {
     Type as ListType,
   } from 'react-swipeable-list';
   import 'react-swipeable-list/dist/styles.css';
+import { useHistory } from 'react-router-dom'
 
 function ScannerApp() {
-    
+    const history = useHistory()
     const cart = fetchFromStorage('cart')
     const [items, setItems] = useState( cart || [])
     const [openScan, setOpenScan] = useState(false)
@@ -41,7 +42,7 @@ function ScannerApp() {
     }, [])
     
     return (
-        <div style={{minHeight: '100vh', backgroundColor: '#E2FDFF'}}>
+        <div style={{minHeight: '100vh', backgroundColor: '#E2FDFF', paddingBottom: 100}}>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 10}}>
                 <Avatar onClick={() => window.location.reload()} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
                     <RefreshOutlined />
@@ -61,6 +62,7 @@ function ScannerApp() {
                 <Typography variant="caption" style={{color: '#fff', fontSize: '4rem', fontWeight: 'bolder'}}> {cart ? parseFloat(cart?.reduce(totalReducer, 0)).toFixed(2) : `0.00`}</Typography>
                 <br/>
                 <Button 
+                    disabled={items?.length < 1}
                     onClick={() => setOpenPayment(true)}
                     variant="contained" sx={{backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius:20, paddingX: 10, paddingY: 2}} size="large"> 
                     <Typography sx={{color: "#fff"}}>Pay Now</Typography>
@@ -89,7 +91,9 @@ function ScannerApp() {
             )}
             
             <div style={{position: 'fixed', paddingBottom: 30, paddingTop: 10, bottom: 0, width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'space-evenly'}}>
-                <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
+                <Avatar 
+                    onClick={() => history.push(`/`)}
+                    sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
                     <HomeOutlined />
                 </Avatar>
                 <Avatar  
@@ -127,15 +131,15 @@ const PaymentDialog = ({open, onClose}) => {
         console.log(data)
         setPaymentDetails(data.order) 
     }, [cart])
-
-    useEffect(() => {
+ 
+     useEffect(() => {
         let mounted = true
         if (mounted) {
             console.log(1)
             createPaymentIntent()
         }
         return () => mounted = false
-    }, [])
+     }, [])
 
     const handleRefresh = async () => {
         const {data} = await axiosInstance.get(`/orders/${paymentDetails._id}`)
@@ -201,6 +205,26 @@ const PaymentDialog = ({open, onClose}) => {
                     </div>
                     <Typography style={{fontSize: 24}} gutterBottom>Status: {paymentDetails.status === 0 ? 'Pending' : 'Paid'}</Typography>
                     <QRCode value={paymentDetails._id} size={256}/>
+
+
+                    {/* <a 
+                        data-amount={paymentDetails?.total} 
+                        data-fee="0" 
+                        data-expiry="6" 
+                        rel='noreferrer' 
+                        data-description="Payment for items ordered" 
+                        data-href="https://getpaid.gcash.com/paynow" 
+                        data-public-key="pk_ce9bf819a4dab30246030387d16548b5" 
+                        onclick="this.href = this.getAttribute('data-href')+'?public_key='+this.getAttribute('data-public-key')+'&amp;amount='+this.getAttribute('data-amount')+'&amp;fee='+this.getAttribute('data-fee')+'&amp;expiry='+this.getAttribute('data-expiry')+'&amp;description='+this.getAttribute('data-description');" 
+                        href={`https://getpaid.gcash.com/paynow?public_key=pk_ce9bf819a4dab30246030387d16548b5&amount=${paymentDetails.total}&fee=0&expiry=6&description=Payment for items ordered`} 
+                        target="_blank" 
+                        class="x-getpaid-button"
+                    >
+                        <img src="https://getpaid.gcash.com/assets/img/paynow.png" alt="gcashbutton" />
+                    </a>
+ */}
+
+
                 </div>
                 // <pre>{JSON.stringify(paymentDetails, null, 4)}</pre>
             ): (
@@ -213,29 +237,62 @@ const PaymentDialog = ({open, onClose}) => {
                         </IconButton>
                     </div>
                     <div ref={ref} style={{margin: 10}}>
-                    <Typography variant="h6" component="h6">
-                        Reference Number
+                    <Typography variant="body2" component="h6" gutterBottom style={{textAlign: 'center'}}>
+                        MGJ FOOD Product Trading
                     </Typography>
-                    
+                    <Typography variant="body2" component="h6" gutterBottom style={{textAlign: 'center'}}>
+                        880 Cabiawan, Banga 1st 3004 Plaridel, Philippines
+                    </Typography>
+                    <Divider />
+                    <Typography variant="body2" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}}>
+                        **SALES INVOICE**
+                    </Typography>
                     {/* <QRCode value={paymentDetails?._id} size={128}/> */}
-                    <Typography variant="caption" component="h6" gutterBottom>
-                        {paymentDetails?._id}
+                    <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} >
+                        INVOICE ID: {paymentDetails?._id}
                     </Typography>
-                    <Typography variant="body2" component="h6" style={{fontWeight: 'bold'}}>
-                        Your Cart Items
-                    </Typography>
+                    <Divider />
                     {paymentDetails?.cart.map((item, index) => (
                         <CartItem item={item} removeItem={() => console.log(1)} hasRemove={false} key={index}/>
                     ))}
-                    {/* <pre>{JSON.stringify(paymentDetails?.cart, null, 1)}</pre> */}
-                    <div style={{display: 'flex', alignItems: 'center', justifyContent:'space-between', width: '80%', marginBottom: 20}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between' , alignItems: "center", width: '100%', paddingBottom:10}} >
+                        <Typography variant="caption">Item(s) : {paymentDetails?.cart?.length}</Typography>
+                        <Typography variant="caption" style={{textAlign: 'right'}}>Qty(s) : {paymentDetails?.cart?.reduce((prev, current) =>  parseFloat(prev) + parseFloat(current.quantity),0)}</Typography>
+                    </div>
+                    <Divider />
+                    <div style={{display: 'flex', justifyContent: 'space-between' , alignItems: "center", width: '100%', paddingBottom:20, marginTop: 10,}}>
+                        <Typography variant="caption">SUBTOTAL</Typography>
+                        <Typography variant="caption" style={{textAlign: 'right'}}>{paymentDetails?.total?.toFixed(2)}</Typography>
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'space-between' , alignItems: "center", width: '100%'}}>
+                        <Typography variant="caption">Vatable Sales</Typography>
+                        <Typography variant="caption" style={{textAlign: 'right'}}>{parseFloat(parseFloat(paymentDetails?.total) / parseFloat(1.12)).toFixed(2)}</Typography>
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'space-between' , alignItems: "center", width: '100%', paddingBottom: 20}}>
+                        <Typography variant="caption">Vat Amount</Typography>
+                        <Typography variant="caption" style={{textAlign: 'right'}}>{(parseFloat(paymentDetails?.total) - (parseFloat(parseFloat(paymentDetails?.total) / parseFloat(1.12)))).toFixed(2)}</Typography>
+                    </div>
+                    <Divider />
+
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent:'space-between', width: '100%', marginBottom: 20, marginTop: 20}}>
                         <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20}}>
                             Total
                         </Typography>
-                        <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20}}>
+                        <Typography variant="caption" component="h6" style={{fontWeight: 'bold', fontSize: 20, textAlign: 'right'}}>
                             ₱ {(paymentDetails?.total)?.toFixed(2)}
                         </Typography>
                     </div>
+                    <Divider />
+                    <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} color="GrayText">
+                        **STRICTLY NO CASH REFUND.**
+                    </Typography>
+                    <Divider />
+                    <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} color="GrayText">
+                        THIS SERVES AS YOUR SALES INVOICE
+                    </Typography>
+                    <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} color="GrayText">
+                        THANK YOU FOR SHOPPING WITH US
+                    </Typography>
                     </div>
                     {/* <Button variant="contained" size="small" fullWidth onClick={onClose} startIcon={<Receipt />}>Save Transaction</Button> */}
                 </div>
@@ -306,6 +363,10 @@ const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) 
             const newCart = [...cart.filter(a => a._id !== item._id), item]
             saveToStorage('cart', newCart)
             onChange(newCart)
+        }else{
+            const newCart = cart.filter(a => a._id !== item._id)
+            saveToStorage('cart', newCart)
+            onChange(newCart)
         }
     }
     const leadingActions = (item) => (
@@ -364,7 +425,7 @@ const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) 
                 <Typography variant="body2" sx={{color: '#000', fontSize: 18, fontWeight: 'bold', textAlign: 'center'}}>Your Cart Items</Typography>
             </div>
             <SwipeableList style={{marginTop: 20}} fullSwipe={false} type={ListType.IOS}>
-                {cart?.map((item, index) => (
+                {cart?.sort((a, b) => a.stocks - b.stocks).map((item, index) => (
                     <SwipeableListItem
                         key={index}
                         leadingActions={leadingActions(item)}
@@ -430,6 +491,7 @@ const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
         if(id) {
             const {data} = await axiosInstance.get(`/products/${id}`)
             console.log(data)
+            if (data.product.status !== 'Active') return
             setProduct(data.product)
         }
     },[])
@@ -544,6 +606,11 @@ const ProductDetails = ({item, onClose, onChange}) => {
         onChange(new_cart)
         onClose()
     }
+    const handleAddQuantity = () => {
+        if (item?.stocks >= (quantity + 1)){
+            setQuantity(quantity + 1)
+        }
+    }
     return (
         <div style={{padding: 15, marginTop: 50}}>
             <img src={item.media[0]} alt={item.name} style={{width: "90vw", height: 340, backgroundSize: 'cover', borderRadius: 10, border: 'solid 1px #e1e1e1'}}/>
@@ -560,7 +627,7 @@ const ProductDetails = ({item, onClose, onChange}) => {
                     <ButtonGroup size="small">
                         <Button onClick={handleRemove}><Remove /></Button>
                         <Button disabled style={{fontSize: 15, color: '#000'}}>{quantity}</Button>
-                        <Button onClick={() => setQuantity(quantity + 1)}><Add /></Button>
+                        <Button onClick={handleAddQuantity}><Add /></Button>
                     </ButtonGroup>
                 </div>
             </div>
@@ -570,9 +637,11 @@ const ProductDetails = ({item, onClose, onChange}) => {
                 <Typography variant="h6">Php {(parseFloat(price) * parseInt(quantity)).toFixed(2)}</Typography>
             </div>
             <div>
+                
                 <Button fullWidth style={{borderRadius: 20}} size="large" variant="contained" startIcon={<AddShoppingCart />}
                     onClick={handleAddToCart}
-                >Add To Cart</Button>
+                    disabled={item.stocks < 1}
+                >{item?.stocks < 1 ? `Out of Stock` : `Add To Cart`}</Button>
             </div>
         </div>
     )

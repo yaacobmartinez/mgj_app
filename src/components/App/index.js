@@ -205,6 +205,26 @@ const PaymentDialog = ({open, onClose}) => {
                     </div>
                     <Typography style={{fontSize: 24}} gutterBottom>Status: {paymentDetails.status === 0 ? 'Pending' : 'Paid'}</Typography>
                     <QRCode value={paymentDetails._id} size={256}/>
+
+
+                    {/* <a 
+                        data-amount={paymentDetails?.total} 
+                        data-fee="0" 
+                        data-expiry="6" 
+                        rel='noreferrer' 
+                        data-description="Payment for items ordered" 
+                        data-href="https://getpaid.gcash.com/paynow" 
+                        data-public-key="pk_ce9bf819a4dab30246030387d16548b5" 
+                        onclick="this.href = this.getAttribute('data-href')+'?public_key='+this.getAttribute('data-public-key')+'&amp;amount='+this.getAttribute('data-amount')+'&amp;fee='+this.getAttribute('data-fee')+'&amp;expiry='+this.getAttribute('data-expiry')+'&amp;description='+this.getAttribute('data-description');" 
+                        href={`https://getpaid.gcash.com/paynow?public_key=pk_ce9bf819a4dab30246030387d16548b5&amount=${paymentDetails.total}&fee=0&expiry=6&description=Payment for items ordered`} 
+                        target="_blank" 
+                        class="x-getpaid-button"
+                    >
+                        <img src="https://getpaid.gcash.com/assets/img/paynow.png" alt="gcashbutton" />
+                    </a>
+ */}
+
+
                 </div>
                 // <pre>{JSON.stringify(paymentDetails, null, 4)}</pre>
             ): (
@@ -586,6 +606,11 @@ const ProductDetails = ({item, onClose, onChange}) => {
         onChange(new_cart)
         onClose()
     }
+    const handleAddQuantity = () => {
+        if (item?.stocks >= (quantity + 1)){
+            setQuantity(quantity + 1)
+        }
+    }
     return (
         <div style={{padding: 15, marginTop: 50}}>
             <img src={item.media[0]} alt={item.name} style={{width: "90vw", height: 340, backgroundSize: 'cover', borderRadius: 10, border: 'solid 1px #e1e1e1'}}/>
@@ -602,7 +627,7 @@ const ProductDetails = ({item, onClose, onChange}) => {
                     <ButtonGroup size="small">
                         <Button onClick={handleRemove}><Remove /></Button>
                         <Button disabled style={{fontSize: 15, color: '#000'}}>{quantity}</Button>
-                        <Button onClick={() => setQuantity(quantity + 1)}><Add /></Button>
+                        <Button onClick={handleAddQuantity}><Add /></Button>
                     </ButtonGroup>
                 </div>
             </div>

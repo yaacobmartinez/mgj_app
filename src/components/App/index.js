@@ -352,10 +352,13 @@ const CartItem = ({item, removeItem, hasRemove=true}) => {
 const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) => {
     const cart = fetchFromStorage('cart')
     const handleAddQuantity = (item) => {
-        item.quantity += 1
-        const newCart = [...cart.filter(a => a._id !== item._id), item]
-        saveToStorage('cart', newCart)
-        onChange(newCart)
+        if (item?.stocks >= (item.quantity + 1)){
+            item.quantity += 1
+            const newCart = [...cart.filter(a => a._id !== item._id), item]
+            saveToStorage('cart', newCart)
+            onChange(newCart)
+        }
+
     }
     const handleRemoveQuantity = (item) => {
         if (item.quantity > 1){

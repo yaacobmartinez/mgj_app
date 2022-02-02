@@ -1,4 +1,4 @@
-import { Add, AddCircle, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, Backspace, Cameraswitch, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, DeleteSweep, Download, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, RemoveCircle, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
+import { Add, AddCircle, AddShoppingCart, ArrowBackIosNewOutlined, ArrowBackOutlined, Backspace, Cameraswitch, ChevronLeft, Close, CloudDownload, CountertopsOutlined, CropFreeOutlined, Delete, DeleteSweep, Download, HelpOutline, HomeOutlined, Menu, Receipt, Refresh, RefreshOutlined, Remove, RemoveCircle, ShareOutlined, ShoppingCartOutlined,} from '@mui/icons-material'
 import {  AppBar, Avatar, Button, ButtonGroup, Dialog, Divider, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, SwipeableDrawer, Toolbar, Typography } from '@mui/material'
 import React, { createRef, useCallback, useEffect, useState } from 'react'
 import {AccountBalanceWallet} from '@mui/icons-material'
@@ -20,6 +20,7 @@ import {
   } from 'react-swipeable-list';
   import 'react-swipeable-list/dist/styles.css';
 import { useHistory } from 'react-router-dom'
+import format from 'date-fns/format'
 
 function ScannerApp() {
     const history = useHistory()
@@ -47,9 +48,11 @@ function ScannerApp() {
                 <Avatar onClick={() => window.location.reload()} sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D' }} variant="rounded" style={{borderRadius: '16px'}}>
                     <RefreshOutlined />
                 </Avatar>
-                {/* <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', }} variant="rounded" style={{borderRadius: '16px'}}>
-                    <ShareOutlined />
-                </Avatar> */}
+                <Avatar sx={{ bgcolor: "#fff", border: 'solid 1px #E6E6E9', color: '#6C6F7D', }} variant="rounded" style={{borderRadius: '16px'}}
+                    onClick={() => window.open('https://drive.google.com/file/d/1PNoBJLt1VrtkGTqimCt63Bet_eOkKQvA/view','_blank' )}
+                >
+                    <HelpOutline />
+                </Avatar>
             </div>
             <div style={{
                 padding: 10, borderRadius: 20, height: 200, textAlign: 'center',
@@ -63,9 +66,9 @@ function ScannerApp() {
                 <br/>
                 <Button 
                     disabled={items?.length < 1}
-                    onClick={() => setOpenPayment(true)}
+                    onClick={() => setOpenCart(true)}
                     variant="contained" sx={{backgroundColor: 'rgba(255, 255, 255, 0.2)', borderRadius:20, paddingX: 10, paddingY: 2}} size="large"> 
-                    <Typography sx={{color: "#fff"}}>Pay Now</Typography>
+                    <Typography sx={{color: "#fff"}}>Checkout</Typography>
                 </Button>
             </div>
             <div style={{padding: 20, marginTop: 40}}>
@@ -250,6 +253,9 @@ const PaymentDialog = ({open, onClose}) => {
                     {/* <QRCode value={paymentDetails?._id} size={128}/> */}
                     <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} >
                         INVOICE ID: {paymentDetails?._id}
+                    </Typography>
+                    <Typography variant="caption" component="h6" gutterBottom style={{ textAlign: 'center' }} >
+                        {format(new Date(paymentDetails?.date_created), 'PPpp')}
                     </Typography>
                     <Divider />
                     {paymentDetails?.cart.map((item, index) => (
@@ -480,6 +486,7 @@ const CartDrawer = ({open, onClose, onOpen, onChange, handleRemove, handlePay}) 
 const ScanDrawer = ({open, onClose, onOpen, onChange}) => {
     const [product, setProduct] = useState(null)
     const [facingMode, setFacingMode] = useState("environment")
+    const [bestsellers, setBestSellers] = useState(null)
     const handleFacingMode = () => {
         if (facingMode === "environment") {
             return setFacingMode('user')
@@ -614,15 +621,22 @@ const ProductDetails = ({item, onClose, onChange}) => {
             setQuantity(quantity + 1)
         }
     }
+    var formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'PHP',
+      });
+      const currencyFormatter = (value) => {
+        return formatter.format(value)
+      }
     return (
         <div style={{padding: 15, marginTop: 50}}>
             <img src={item.media[0]} alt={item.name} style={{width: "90vw", height: 340, backgroundSize: 'cover', borderRadius: 10, border: 'solid 1px #e1e1e1'}}/>
             <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingTop: 20}}>
                 <div>
                     <Typography variant="h5" style={{fontWeight: 'bold'}}>{item.name}</Typography>
-                    <Typography variant="subtitle1" component="p" color="GrayText">{item.description}</Typography>
+                    <Typography variant="caption" component="p" color="GrayText">{item.description}</Typography>
                 </div>
-                <Typography variant="h6">Php {price.toFixed(2)}</Typography>
+                <Typography variant="caption">{currencyFormatter(price)}</Typography>
             </div>
             <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: "20px 0px"}}>
                 <Typography variant="h6">Quantity</Typography>
@@ -637,7 +651,7 @@ const ProductDetails = ({item, onClose, onChange}) => {
             <Divider />
             <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: "20px 0px"}}>
                 <Typography variant="h6">Total</Typography>
-                <Typography variant="h6">Php {(parseFloat(price) * parseInt(quantity)).toFixed(2)}</Typography>
+                <Typography variant="h6">{currencyFormatter((parseFloat(price) * parseInt(quantity)))}</Typography>
             </div>
             <div>
                 

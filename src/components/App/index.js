@@ -254,9 +254,11 @@ const PaymentDialog = ({open, onClose}) => {
                     <Typography variant="caption" component="h6" gutterBottom style={{textAlign: 'center', marginTop: 10}} >
                         INVOICE ID: {paymentDetails?._id}
                     </Typography>
-                    <Typography variant="caption" component="h6" gutterBottom style={{ textAlign: 'center' }} >
-                        {format(new Date(paymentDetails?.date_created), 'PPpp')}
-                    </Typography>
+                    {paymentDetails && (
+                        <Typography variant="caption" component="h6" gutterBottom style={{ textAlign: 'center' }} >
+                            {format(new Date(paymentDetails?.date_created), 'PPpp')}
+                        </Typography>
+                    )}
                     <Divider />
                     {paymentDetails?.cart.map((item, index) => (
                         <CartItem item={item} removeItem={() => console.log(1)} hasRemove={false} key={index}/>

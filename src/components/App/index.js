@@ -60,7 +60,7 @@ function ScannerApp() {
                 background: "linear-gradient(90deg, hsla(333, 100%, 53%, 1) 0%, hsla(33, 94%, 57%, 1) 100%)", 
                 boxShadow: '0px 39px 66px 0px rgba(0,0,0,0.42)',
             }}>
-                <Typography variant="h6" style={{color: '#fff'}}>Balance</Typography>
+                <Typography variant="h6" style={{color: '#fff'}}>Total Amount</Typography>
                 <Typography variant="caption" style={{color: '#fff', fontSize: '1.5rem'}}>₱{" "}</Typography>
                 <Typography variant="caption" style={{color: '#fff', fontSize: '4rem', fontWeight: 'bolder'}}> {cart ? parseFloat(cart?.reduce(totalReducer, 0)).toFixed(2) : `0.00`}</Typography>
                 <br/>
@@ -165,6 +165,17 @@ const PaymentDialog = ({open, onClose}) => {
         a.click()
     }
 
+    const [gcashPayment, setGcashPayment] = useState(null)
+    const handleRequestPayment = async () => {
+        const body = {
+            amount: paymentDetails?.total, 
+            order: paymentDetails?._id ,
+        }
+        const {data} = await axiosInstance.post("/payments", body)
+        console.log(data.data.data)
+        window.open(data.data.data.checkouturl, "_blank")
+        setGcashPayment(data.data)
+    }
     return (
         <Dialog open={open} onClose={onClose} fullScreen>
             <AppBar sx={{ position: 'relative' }}>
@@ -207,9 +218,11 @@ const PaymentDialog = ({open, onClose}) => {
                         <Typography style={{fontWeight: 'bold', fontSize: 50}}>₱ {(paymentDetails.total).toFixed(2)}</Typography>
                     </div>
                     <Typography style={{fontSize: 24}} gutterBottom>Status: {paymentDetails.status === 0 ? 'Pending' : 'Paid'}</Typography>
-                    <QRCode value={paymentDetails._id} size={256}/>
-
-
+                    <QRCode value={paymentDetails._id} size={256}/> 
+                    <Typography variant="h6" style={{marginTop: 20}}>OR</Typography>
+                    <Button size="small" onClick={handleRequestPayment}>
+                        <img src="https://getpaid.gcash.com/assets/img/paynow.png" alt="gcashbutton" />
+                    </Button>
                     {/* <a 
                         data-amount={paymentDetails?.total} 
                         data-fee="0" 
@@ -219,13 +232,13 @@ const PaymentDialog = ({open, onClose}) => {
                         data-href="https://getpaid.gcash.com/paynow" 
                         data-public-key="pk_ce9bf819a4dab30246030387d16548b5" 
                         onclick="this.href = this.getAttribute('data-href')+'?public_key='+this.getAttribute('data-public-key')+'&amp;amount='+this.getAttribute('data-amount')+'&amp;fee='+this.getAttribute('data-fee')+'&amp;expiry='+this.getAttribute('data-expiry')+'&amp;description='+this.getAttribute('data-description');" 
-                        href={`https://getpaid.gcash.com/paynow?public_key=pk_ce9bf819a4dab30246030387d16548b5&amount=${paymentDetails.total}&fee=0&expiry=6&description=Payment for items ordered`} 
+                        href={`https://getpaid.gcash.com/paynow?public_key=pk_ce9bf819a4dab30246030387d16548b5&amount=${paymentDetails.total}&fee=0&expiry=6&description=Payment for items ordered&customername=Yaacob`} 
                         target="_blank" 
                         class="x-getpaid-button"
                     >
                         <img src="https://getpaid.gcash.com/assets/img/paynow.png" alt="gcashbutton" />
-                    </a>
- */}
+                    </a> */}
+
 
 
                 </div>
